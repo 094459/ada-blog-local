@@ -1,0 +1,187 @@
+---
+# Microblogging Application Data Model
+
+User:
+  attributes:
+    id:
+      type: integer
+      primary_key: true
+      auto_increment: true
+    email:
+      type: string
+      max_length: 255
+      unique: true
+      nullable: false
+    alias:
+      type: string
+      max_length: 100
+      nullable: false
+      unique: false
+    bio:
+      type: string
+      max_length: 250
+      nullable: true
+    created_at:
+      type: datetime
+      default: current_timestamp
+  relationships:
+    posts:
+      type: one_to_many
+      target: Post
+      foreign_key: author_id
+    responses:
+      type: one_to_many
+      target: Post
+      foreign_key: responder_id
+    upvoted_posts:
+      type: many_to_many
+      target: Post
+      join_table: upvotes
+    following:
+      type: many_to_many
+      target: User
+      join_table: user_follows
+      foreign_key: follower_id
+      target_key: followed_id
+    followers:
+      type: many_to_many
+      target: User
+      join_table: user_follows
+      foreign_key: followed_id
+      target_key: follower_id
+
+Post:
+  attributes:
+    id:
+      type: integer
+      primary_key: true
+      auto_increment: true
+    content:
+      type: text
+      max_length: 1024
+      nullable: false
+    author_id:
+      type: integer
+      foreign_key: User.id
+      nullable: false
+    parent_id:
+      type: integer
+      foreign_key: Post.id
+      nullable: true
+    responder_id:
+      type: integer
+      foreign_key: User.id
+      nullable: true
+    created_at:
+      type: datetime
+      default: current_timestamp
+    updated_at:
+      type: datetime
+      default: current_timestamp
+      on_update: current_timestamp
+  relationships:
+    author:
+      type: many_to_one
+      target: User
+      foreign_key: author_id
+    responder:
+      type: many_to_one
+      target: User
+      foreign_key: responder_id
+    parent_post:
+      type: many_to_one
+      target: Post
+      foreign_key: parent_id
+    responses:
+      type: one_to_many
+      target: Post
+      foreign_key: parent_id
+    upvoters:
+      type: many_to_many
+      target: User
+      join_table: upvotes
+    images:
+      type: one_to_many
+      target: Image
+      foreign_key: post_id
+    links:
+      type: one_to_many
+      target: Link
+      foreign_key: post_id
+
+Image:
+  attributes:
+    id:
+      type: integer
+      primary_key: true
+      auto_increment: true
+    post_id:
+      type: integer
+      foreign_key: Post.id
+      nullable: false
+    image_url:
+      type: string
+      max_length: 255
+      nullable: false
+    created_at:
+      type: datetime
+      default: current_timestamp
+  relationships:
+    post:
+      type: many_to_one
+      target: Post
+      foreign_key: post_id
+
+Link:
+  attributes:
+    id:
+      type: integer
+      primary_key: true
+      auto_increment: true
+    post_id:
+      type: integer
+      foreign_key: Post.id
+      nullable: false
+    url:
+      type: string
+      max_length: 255
+      nullable: false
+    title:
+      type: string
+      max_length: 255
+      nullable: true
+    created_at:
+      type: datetime
+      default: current_timestamp
+  relationships:
+    post:
+      type: many_to_one
+      target: Post
+      foreign_key: post_id
+
+# Association table for upvotes
+upvotes:
+  attributes:
+    user_id:
+      type: integer
+      foreign_key: User.id
+      primary_key: true
+    post_id:
+      type: integer
+      foreign_key: Post.id
+      primary_key: true
+
+# Association table for user follows
+user_follows:
+  attributes:
+    follower_id:
+      type: integer
+      foreign_key: User.id
+      primary_key: true
+    followed_id:
+      type: integer
+      foreign_key: User.id
+      primary_key: true
+    created_at:
+      type: datetime
+      default: current_timestamp
